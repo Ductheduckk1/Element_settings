@@ -7,27 +7,20 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.VectorSettingsRootBinding
-import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.settings.legals.LegalsFragment
 import im.vector.app.features.settings.notifications.VectorSettingsNotificationFragment
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class VectorSettingsRootFragment : Fragment() {
+class VectorSettingsRootFragment : VectorBaseFragment<VectorSettingsRootBinding>() {
 
-    private var _binding: VectorSettingsRootBinding? = null
-    private val binding get() = _binding!!
 
-    @Inject lateinit var navigator: Navigator
-
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSettingsRootBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSettingsRootBinding {
+        return VectorSettingsRootBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -35,50 +28,47 @@ class VectorSettingsRootFragment : Fragment() {
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Cài đặt"
 
-        binding.itemNotifications.setOnClickListener {
+        views.itemNotifications.setOnClickListener {
             navigateTo(VectorSettingsNotificationFragment::class.java)
         }
 
-        binding.itemMessage.setOnClickListener {
+        views.itemMessage.setOnClickListener {
             navigateTo(VectorSettingsMessageFragment::class.java)
         }
 
-        binding.itemCall.setOnClickListener {
+        views.itemCall.setOnClickListener {
             navigateTo(VectorSettingsVoiceVideoFragment::class.java)
         }
 
-        binding.itemContact.setOnClickListener {
+        views.itemContact.setOnClickListener {
             navigateTo(VectorSettingsContactFragment::class.java)
         }
 
-        binding.itemUiLanguage.setOnClickListener {
+        views.itemUiLanguage.setOnClickListener {
             navigateTo(VectorSettingsPreferencesFragment::class.java)
         }
 
-        binding.itemSecurity.setOnClickListener {
+        views.itemSecurity.setOnClickListener {
             navigateTo(VectorSettingsSecurityFragment::class.java)
         }
 
-        binding.itemOther.setOnClickListener {
+        views.itemOther.setOnClickListener {
             navigateTo(VectorSettingsOtherSettingsFragment::class.java)
         }
 
-        binding.itemHelp.setOnClickListener {
+        views.itemHelp.setOnClickListener {
             navigateTo(VectorSettingsHelpAboutFragment::class.java)
         }
 
-        binding.itemPrivacy.setOnClickListener {
+        views.itemPrivacy.setOnClickListener {
             navigateTo(LegalsFragment::class.java)
         }
     }
+
     private fun navigateTo(fragmentClass: Class<out Fragment>) {
         parentFragmentManager.beginTransaction()
                 .replace((view?.parent as ViewGroup).id, fragmentClass, null)
                 .addToBackStack(null)
                 .commit()
-    }
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

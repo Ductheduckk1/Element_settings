@@ -9,10 +9,10 @@ import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.lifecycleScope
+import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.VectorSettingsNotificationMentionsAndKeywordsBinding
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.launch
@@ -23,25 +23,20 @@ import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class VectorSettingsKeywordAndMentionsNotificationFragment : Fragment() {
-
-    private var _binding: VectorSettingsNotificationMentionsAndKeywordsBinding? = null
-    private val binding get() = _binding!!
+class VectorSettingsKeywordAndMentionsNotificationFragment :
+        VectorBaseFragment<VectorSettingsNotificationMentionsAndKeywordsBinding>() {
 
     @Inject lateinit var session: Session
     @Inject lateinit var vectorPreferences: VectorPreferences
 
     private val pushRuleService get() = session.pushRuleService()
-
     private val keywords = mutableSetOf<String>()
 
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSettingsNotificationMentionsAndKeywordsBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSettingsNotificationMentionsAndKeywordsBinding {
+        return VectorSettingsNotificationMentionsAndKeywordsBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -53,12 +48,12 @@ class VectorSettingsKeywordAndMentionsNotificationFragment : Fragment() {
     }
 
     private fun setupSwitches() {
-        setupSwitch(binding.switchDisplayName, RuleIds.RULE_ID_CONTAIN_DISPLAY_NAME)
-        setupSwitch(binding.switchUsername, RuleIds.RULE_ID_CONTAIN_USER_NAME)
-        setupSwitch(binding.switchAtRoom, RuleIds.RULE_ID_ROOM_NOTIF)
+        setupSwitch(views.switchDisplayName, RuleIds.RULE_ID_CONTAIN_DISPLAY_NAME)
+        setupSwitch(views.switchUsername, RuleIds.RULE_ID_CONTAIN_USER_NAME)
+        setupSwitch(views.switchAtRoom, RuleIds.RULE_ID_ROOM_NOTIF)
 
-        binding.switchKeywords.setOnCheckedChangeListener { _, isChecked ->
-            binding.cardKeywords.isVisible = isChecked
+        views.switchKeywords.setOnCheckedChangeListener { _, isChecked ->
+            views.cardKeywords.isVisible = isChecked
             keywords.forEach {
                 updatePushRule(it, isChecked)
             }
@@ -77,7 +72,7 @@ class VectorSettingsKeywordAndMentionsNotificationFragment : Fragment() {
     }
 
     private fun setupKeywordInput() {
-        binding.inputAddKeyword.setOnEditorActionListener { v, _, _ ->
+        views.inputAddKeyword.setOnEditorActionListener { v, _, _ ->
             val keyword = v.text.toString().trim()
             if (keyword.isNotEmpty() && keywords.add(keyword)) {
                 addKeywordChip(keyword)
@@ -92,33 +87,36 @@ class VectorSettingsKeywordAndMentionsNotificationFragment : Fragment() {
         val chip = Chip(requireContext()).apply {
             text = keyword
             isCloseIconVisible = true
-            // Set chip background and text color based on the design
             chipBackgroundColor = ColorStateList.valueOf("#D8DEF8".toColorInt())
             setTextColor("#021B84".toColorInt())
             closeIconTint = ColorStateList.valueOf("#021B84".toColorInt())
             setOnCloseIconClickListener {
                 keywords.remove(keyword)
-                binding.chipGroupKeywords.removeView(this)
+                views.chipGroupKeywords.removeView(this)
                 removeKeywordRule(keyword)
             }
         }
-        binding.chipGroupKeywords.addView(chip)
+        views.chipGroupKeywords.addView(chip)
     }
 
     private fun loadStates() {
         lifecycleScope.launch {
             val rules = pushRuleService.getPushRules().content.orEmpty()
-            binding.switchDisplayName.isChecked = rules.firstOrNull { it.ruleId == RuleIds.RULE_ID_CONTAIN_DISPLAY_NAME }?.enabled ?: false
-            binding.switchUsername.isChecked = rules.firstOrNull { it.ruleId == RuleIds.RULE_ID_CONTAIN_USER_NAME }?.enabled ?: false
-            binding.switchAtRoom.isChecked = rules.firstOrNull { it.ruleId == RuleIds.RULE_ID_ROOM_NOTIF }?.enabled ?: false
-            binding.switchKeywords.isChecked = rules.any { !it.ruleId.startsWith(".") && it.enabled }
+
+            views.switchDisplayName.isChecked = rules.firstOrNull { it.ruleId == RuleIds.RULE_ID_CONTAIN_DISPLAY_NAME }?.enabled ?: false
+            views.switchUsername.isChecked = rules.firstOrNull { it.ruleId == RuleIds.RULE_ID_CONTAIN_USER_NAME }?.enabled ?: false
+            views.switchAtRoom.isChecked = rules.firstOrNull { it.ruleId == RuleIds.RULE_ID_ROOM_NOTIF }?.enabled ?: false
+
+            views.switchKeywords.isChecked = rules.any { !it.ruleId.startsWith(".") && it.enabled }
+
             val keywordRules = rules.filter { !it.ruleId.startsWith(".") }
             keywords.clear()
             keywordRules.forEach {
                 keywords.add(it.ruleId)
                 addKeywordChip(it.ruleId)
             }
-            binding.cardKeywords.isVisible = binding.switchKeywords.isChecked
+
+            views.cardKeywords.isVisible = views.switchKeywords.isChecked
         }
     }
 
@@ -145,10 +143,5 @@ class VectorSettingsKeywordAndMentionsNotificationFragment : Fragment() {
             val rule = pushRuleService.getPushRules().content?.firstOrNull { it.ruleId == keyword } ?: return@launch
             pushRuleService.updatePushRuleEnableStatus(RuleKind.CONTENT, rule, enabled)
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

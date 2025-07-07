@@ -5,33 +5,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.VectorSettingsPreferencesBinding
 import im.vector.app.features.themes.ThemeUtils
 import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class VectorSettingsPreferencesFragment : Fragment() {
-
-    private var _binding: VectorSettingsPreferencesBinding? = null
-    private val binding get() = _binding!!
+class VectorSettingsPreferencesFragment :
+        VectorBaseFragment<VectorSettingsPreferencesBinding>() {
 
     @Inject lateinit var vectorLocale: VectorLocale
 
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSettingsPreferencesBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSettingsPreferencesBinding {
+        return VectorSettingsPreferencesBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Giao diện và ngôn ngữ"
+
         setupThemeRadioGroup()
         setupLanguageRadioGroup()
     }
@@ -39,16 +36,16 @@ class VectorSettingsPreferencesFragment : Fragment() {
     private fun setupThemeRadioGroup() {
         val currentTheme = ThemeUtils.getApplicationTheme(requireContext())
         val selectedThemeId = when (currentTheme) {
-            "light" -> binding.radioThemeLight.id
-            "dark" -> binding.radioThemeDark.id
-            else -> binding.radioThemeSystem.id
+            "light" -> views.radioThemeLight.id
+            "dark" -> views.radioThemeDark.id
+            else -> views.radioThemeSystem.id
         }
-        binding.radioGroupTheme.check(selectedThemeId)
+        views.radioGroupTheme.check(selectedThemeId)
 
-        binding.radioGroupTheme.setOnCheckedChangeListener { _, checkedId ->
+        views.radioGroupTheme.setOnCheckedChangeListener { _, checkedId ->
             val theme = when (checkedId) {
-                binding.radioThemeLight.id -> "light"
-                binding.radioThemeDark.id -> "dark"
+                views.radioThemeLight.id -> "light"
+                views.radioThemeDark.id -> "dark"
                 else -> "system"
             }
             ThemeUtils.setApplicationTheme(requireContext().applicationContext, theme)
@@ -59,25 +56,20 @@ class VectorSettingsPreferencesFragment : Fragment() {
     private fun setupLanguageRadioGroup() {
         val currentLanguage = vectorLocale.applicationLocale.language
         val selectedLangId = when (currentLanguage) {
-            "lo" -> binding.radioLangLao.id
-            "vi" -> binding.radioLangVietnamese.id
-            else -> binding.radioLangEnglish.id
+            "lo" -> views.radioLangLao.id
+            "vi" -> views.radioLangVietnamese.id
+            else -> views.radioLangEnglish.id
         }
-        binding.radioGroupLanguage.check(selectedLangId)
+        views.radioGroupLanguage.check(selectedLangId)
 
-        binding.radioGroupLanguage.setOnCheckedChangeListener { _, checkedId ->
+        views.radioGroupLanguage.setOnCheckedChangeListener { _, checkedId ->
             val lang = when (checkedId) {
-                binding.radioLangLao.id -> "lo"
-                binding.radioLangVietnamese.id -> "vi"
+                views.radioLangLao.id -> "lo"
+                views.radioLangVietnamese.id -> "vi"
                 else -> "en"
             }
             vectorLocale.saveApplicationLocale(Locale(lang))
             activity?.recreate()
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

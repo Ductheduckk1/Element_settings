@@ -6,24 +6,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.VectorSettingsRoomDirectoryBinding
-import javax.inject.Inject
 
 @AndroidEntryPoint
-class VectorSettingsRoomFragment : Fragment() {
+class VectorSettingsRoomFragment :
+        VectorBaseFragment<VectorSettingsRoomDirectoryBinding>() {
 
-    private var _binding: VectorSettingsRoomDirectoryBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSettingsRoomDirectoryBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSettingsRoomDirectoryBinding {
+        return VectorSettingsRoomDirectoryBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -33,13 +28,8 @@ class VectorSettingsRoomFragment : Fragment() {
     }
 
     private fun setupSwitch() {
-        binding.switchShowExplicitRooms.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
+        views.switchShowExplicitRooms.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
             // TODO: Lưu trạng thái vào SharedPreferences hoặc ViewModel nếu cần
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

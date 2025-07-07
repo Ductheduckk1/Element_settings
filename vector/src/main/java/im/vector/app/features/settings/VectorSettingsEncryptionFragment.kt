@@ -5,9 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.platform.VectorBaseFragment
+import androidx.lifecycle.lifecycleScope
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.databinding.VectorSettingsEncryptionBinding
 import kotlinx.coroutines.Dispatchers
@@ -19,61 +19,53 @@ import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class VectorSettingsEncryptionFragment : Fragment() {
-
-    private var _binding: VectorSettingsEncryptionBinding? = null
-    private val binding get() = _binding!!
+class VectorSettingsEncryptionFragment :
+        VectorBaseFragment<VectorSettingsEncryptionBinding>() {
 
     @Inject lateinit var session: Session
 
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSettingsEncryptionBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSettingsEncryptionBinding {
+        return VectorSettingsEncryptionBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Mã hóa tin nhắn"
 
-        // Copy device info when clicking
-        binding.itemDeviceName.setOnClickListener {
-            copyToClipboard(requireContext(), binding.summaryDeviceName.text.toString())
+        views.itemDeviceName.setOnClickListener {
+            copyToClipboard(requireContext(), views.summaryDeviceName.text.toString())
         }
-        binding.itemDeviceId.setOnClickListener {
-            copyToClipboard(requireContext(), binding.summaryDeviceId.text.toString())
+
+        views.itemDeviceId.setOnClickListener {
+            copyToClipboard(requireContext(), views.summaryDeviceId.text.toString())
         }
-        binding.itemDeviceKey.setOnClickListener {
-            copyToClipboard(requireContext(), binding.summaryDeviceKey.text.toString())
+
+        views.itemDeviceKey.setOnClickListener {
+            copyToClipboard(requireContext(), views.summaryDeviceKey.text.toString())
         }
-        binding.itemCrossSigning.setOnClickListener {
+
+        views.itemCrossSigning.setOnClickListener {
             lifecycleScope.launch {
                 val trustResult = session.cryptoService().crossSigningService().checkUserTrust(session.myUserId)
                 val canCrossSign = session.cryptoService().crossSigningService().canCrossSign()
-//                val crossSigningKeys = session.cryptoService().crossSigningService().getMyCrossSigningKeys()
 
-                // Nếu chưa setup đủ cross-signing
                 if (!canCrossSign || !trustResult.isVerified()) {
                     (requireActivity() as? VectorSettingsActivity)?.let {
                         it.navigator.requestSelfSessionVerification(it)
                     }
                 } else {
-                    // Đã đầy đủ thì copy chuỗi như trước
-                    copyToClipboard(requireContext(), binding.summaryCrossSigning.text.toString())
+                    copyToClipboard(requireContext(), views.summaryCrossSigning.text.toString())
                 }
             }
         }
 
-
-        // Switch: Never send to unverified devices
-        binding.switchNeverSendUnverified.setOnCheckedChangeListener { _, isChecked ->
+        views.switchNeverSendUnverified.setOnCheckedChangeListener { _, isChecked ->
             session.cryptoService().setGlobalBlacklistUnverifiedDevices(isChecked)
         }
 
-        // Load data
         lifecycleScope.launch {
             updateCryptographyInfo()
         }
@@ -86,34 +78,26 @@ class VectorSettingsEncryptionFragment : Fragment() {
         val currentDevice = devices.find { it.deviceId == deviceId }
 
         val deviceInfo = session.cryptoService().getCryptoDeviceInfo(userId, deviceId)
-//        val fingerprint = deviceInfo?.fingerprint()
         val humanFingerprint = deviceInfo?.getFingerprintHumanReadable()
 
         val trustResult = session.cryptoService().crossSigningService().checkUserTrust(userId)
         val crossSigningKeys = session.cryptoService().crossSigningService().getMyCrossSigningKeys()
 
         withContext(Dispatchers.Main) {
-            binding.summaryDeviceName.text = currentDevice?.displayName() ?: "-"
-            binding.summaryDeviceId.text = deviceId
-            binding.summaryDeviceKey.text = humanFingerprint ?: "-"
+            views.summaryDeviceName.text = currentDevice?.displayName() ?: "-"
+            views.summaryDeviceId.text = deviceId
+            views.summaryDeviceKey.text = humanFingerprint ?: "-"
 
-            // Cross-signing status
             val canSign = session.cryptoService().crossSigningService().canCrossSign()
-            binding.summaryCrossSigning.text = when {
+            views.summaryCrossSigning.text = when {
                 canSign -> getString(im.vector.lib.strings.R.string.encryption_information_dg_xsigning_complete)
                 trustResult.isVerified() -> getString(im.vector.lib.strings.R.string.encryption_information_dg_xsigning_trusted)
                 crossSigningKeys != null -> getString(im.vector.lib.strings.R.string.encryption_information_dg_xsigning_not_trusted)
                 else -> getString(im.vector.lib.strings.R.string.encryption_information_dg_xsigning_disabled)
             }
 
-            // Switch checked state
-            binding.switchNeverSendUnverified.isChecked =
+            views.switchNeverSendUnverified.isChecked =
                     session.cryptoService().getGlobalBlacklistUnverifiedDevices()
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

@@ -6,25 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.lifecycleScope
+import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.VectorSettingsMessageBinding
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class VectorSettingsMessageFragment : Fragment() {
+class VectorSettingsMessageFragment :
+        VectorBaseFragment<VectorSettingsMessageBinding>() {
 
-    private var _binding: VectorSettingsMessageBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSettingsMessageBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSettingsMessageBinding {
+        return VectorSettingsMessageBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -34,7 +30,7 @@ class VectorSettingsMessageFragment : Fragment() {
     }
 
     private fun setupSwitches() {
-        with(binding) {
+        with(views) {
             setupSwitch(switchMediaConfirm)
             setupSwitch(switchMessageBubbles)
             setupSwitch(switchReadReceipts)
@@ -56,15 +52,9 @@ class VectorSettingsMessageFragment : Fragment() {
 
     private fun setupSwitch(switch: CompoundButton) {
         switch.setOnCheckedChangeListener { _, _ ->
-            lifecycleScope.launch {
+            viewLifecycleOwner.lifecycleScope.launch {
                 // TODO: Lưu trạng thái nếu cần thiết
-                // Ví dụ: settings.set(key, isChecked)
             }
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

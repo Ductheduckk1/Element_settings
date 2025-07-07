@@ -5,47 +5,36 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.VectorSecurityOtherFragmentBinding
 import javax.inject.Inject
 import org.matrix.android.sdk.api.session.Session
 
 @AndroidEntryPoint
-class VectorSecurityOtherFragment : Fragment() {
+class VectorSecurityOtherFragment :
+        VectorBaseFragment<VectorSecurityOtherFragmentBinding>() {
 
     @Inject lateinit var session: Session
     @Inject lateinit var vectorPreferences: VectorPreferences
 
-
-    private var _binding: VectorSecurityOtherFragmentBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSecurityOtherFragmentBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSecurityOtherFragmentBinding {
+        return VectorSecurityOtherFragmentBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (requireActivity() as AppCompatActivity).supportActionBar?.title = "Khác"
 
-        // Switch logic
-        binding.switchIncognitoKeyboard.setOnCheckedChangeListener { _, _ ->
-
+        views.switchIncognitoKeyboard.setOnCheckedChangeListener { _, _ ->
+            // TODO: Lưu vào vectorPreferences nếu cần
         }
 
-        binding.switchPreventScreenshot.setOnCheckedChangeListener { _,_ ->
-
+        views.switchPreventScreenshot.setOnCheckedChangeListener { _, _ ->
+            // TODO: Lưu vào vectorPreferences nếu cần
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

@@ -6,38 +6,33 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.VectorSettingsNotificationDefaultBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import org.matrix.android.sdk.api.session.pushrules.RuleIds
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
+import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import org.matrix.android.sdk.api.session.pushrules.rest.RuleSet
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class VectorSettingsDefaultNotificationFragment : Fragment() {
-
-    private var _binding: VectorSettingsNotificationDefaultBinding? = null
-    private val binding get() = _binding!!
+class VectorSettingsDefaultNotificationFragment :
+        VectorBaseFragment<VectorSettingsNotificationDefaultBinding>() {
 
     @Inject lateinit var session: Session
     @Inject lateinit var vectorPreferences: VectorPreferences
 
     private val pushRuleService get() = session.pushRuleService()
 
-    override fun onCreateView(
+    override fun getBinding(
             inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View {
-        _binding = VectorSettingsNotificationDefaultBinding.inflate(inflater, container, false)
-        return binding.root
+            container: ViewGroup?
+    ): VectorSettingsNotificationDefaultBinding {
+        return VectorSettingsNotificationDefaultBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -48,10 +43,10 @@ class VectorSettingsDefaultNotificationFragment : Fragment() {
     }
 
     private fun setupSwitches() {
-        setupSwitch(binding.switchDirectMessages, RuleIds.RULE_ID_ONE_TO_ONE_ROOM)
-        setupSwitch(binding.switchGroupMessages, RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS)
-        setupSwitch(binding.switchEncryptedDirect, RuleIds.RULE_ID_ONE_TO_ONE_ENCRYPTED_ROOM)
-        setupSwitch(binding.switchEncryptedGroup, RuleIds.RULE_ID_ENCRYPTED)
+        setupSwitch(views.switchDirectMessages, RuleIds.RULE_ID_ONE_TO_ONE_ROOM)
+        setupSwitch(views.switchGroupMessages, RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS)
+        setupSwitch(views.switchEncryptedDirect, RuleIds.RULE_ID_ONE_TO_ONE_ENCRYPTED_ROOM)
+        setupSwitch(views.switchEncryptedGroup, RuleIds.RULE_ID_ENCRYPTED)
     }
 
     private fun setupSwitch(switch: CompoundButton, ruleId: String) {
@@ -64,10 +59,10 @@ class VectorSettingsDefaultNotificationFragment : Fragment() {
 
     private fun loadCurrentStates() {
         lifecycleScope.launch {
-            binding.switchDirectMessages.isChecked = getPushRuleById(RuleIds.RULE_ID_ONE_TO_ONE_ROOM)?.second?.enabled ?: false
-            binding.switchGroupMessages.isChecked = getPushRuleById(RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS)?.second?.enabled ?: false
-            binding.switchEncryptedDirect.isChecked = getPushRuleById(RuleIds.RULE_ID_ONE_TO_ONE_ENCRYPTED_ROOM)?.second?.enabled ?: false
-            binding.switchEncryptedGroup.isChecked = getPushRuleById(RuleIds.RULE_ID_ENCRYPTED)?.second?.enabled ?: false
+            views.switchDirectMessages.isChecked = getPushRuleById(RuleIds.RULE_ID_ONE_TO_ONE_ROOM)?.second?.enabled ?: false
+            views.switchGroupMessages.isChecked = getPushRuleById(RuleIds.RULE_ID_ALL_OTHER_MESSAGES_ROOMS)?.second?.enabled ?: false
+            views.switchEncryptedDirect.isChecked = getPushRuleById(RuleIds.RULE_ID_ONE_TO_ONE_ENCRYPTED_ROOM)?.second?.enabled ?: false
+            views.switchEncryptedGroup.isChecked = getPushRuleById(RuleIds.RULE_ID_ENCRYPTED)?.second?.enabled ?: false
         }
     }
 
@@ -89,10 +84,5 @@ class VectorSettingsDefaultNotificationFragment : Fragment() {
         sender?.forEach { result.add(RuleKind.SENDER to it) }
         underride?.forEach { result.add(RuleKind.UNDERRIDE to it) }
         return result
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }
